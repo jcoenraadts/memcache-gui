@@ -1,0 +1,25 @@
+version: '2'
+services:
+
+    memcached:
+      image: memcached:latest
+      expose:
+       - "11211"
+      ports:
+      - "11211:11211"
+
+    web:
+      build: .
+      command: gunicorn --workers=1 -b 0.0.0.0:8000 --pythonpath src app:app --log-level debug --preload
+      links:
+        - memcached:memcached
+      depends_on:
+        - memcached
+      expose:
+        - "8000"
+      ports:
+        - "8000:8000"
+      environment:
+        - PYTHONUNBUFFERED=TRUE
+      volumes:
+        - ./src:/src

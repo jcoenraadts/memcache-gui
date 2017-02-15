@@ -1,0 +1,96 @@
+<html>
+<head>
+    <title>Memcache</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    {{ moment.include_jquery() }}
+    {{ moment.include_moment() }}
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container" style="width: 940px;">
+    <h3>Memcache Key-Value List</h3>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+            <th>Expiration</th>
+            <th>Size</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
+            <tr>
+                <td>{{ item.key }}</td>
+                <td>{{ item.value }}</td>
+                <td>{{ moment(item.expiration).format('MMMM Do YYYY, h:mm:ss a') }}</td>
+                <td>{{ item.size }}</td>
+                <td>
+                    <button data-key="{{ item.key }}" onclick="deleteItem(this)" type="button" class="btn btn-danger btn-xs">Delete</button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <center>
+        <button onclick="flush()" type="button" class="btn btn-danger">Flush All</button>
+        <button onclick="set()" type="button" class="btn btn-info">Set Item</button>
+    </center>
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+
+    });
+
+    function deleteItem(element) {
+        var key = $(element).data('key');
+        var ok = window.confirm("Are you sure you want to delete" + key + "?");
+        if(ok) {
+            console.log("Deleting " + key);
+            $.post("/delete/" + key, function (data) {
+                console.log(data);
+                location.reload();
+            })
+        }
+    }
+
+    function flush() {
+        var ok = window.confirm("Are you sure you want to flush the cache?");
+        if(ok) {
+            console.log("Flushing ");
+            $.post("/flush/", function (data) {
+                console.log(data);
+                location.reload();
+            })
+        }
+    }
+
+    function set() {
+        var key = prompt("Key?");
+        if(key == null)
+            return;
+
+        var value = prompt("Value?");
+        if(value == null)
+            return;
+
+        console.log("Setting key=" + key + " value=" + value);
+        var data = { key: key, value: value, time: 0 };
+
+        $.ajax({
+            url: '/set/',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function (resp) {
+                console.log(resp);
+                location.reload();
+            },
+            data: JSON.stringify(data)
+        });
+    }
+</script>
+
+</body>
+</html>
